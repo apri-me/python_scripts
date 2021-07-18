@@ -39,6 +39,19 @@ def apply_circle_focus_blur(frame, intensity=.2):
     frame = cv2.cvtColor(blended, cv2.COLOR_BGRA2BGR)
     return frame
 
+def apply_hue_saturation(frame, alpha=3, beta=3):
+    hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(hsv_image)
+    s.fill(199)
+    v.fill(255)
+    hsv_image = cv2.merge([h, s, v])
+
+    out = cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR)
+    frame = verify_alpha_channel(frame)
+    out = verify_alpha_channel(out)
+    cv2.addWeighted(out, 0.25, frame, 1.0, .23, frame)
+    return frame
+
 def toggle_effect(ef_op, effect):
     if effect in ef_op:
         ef_op.remove(effect)
@@ -48,13 +61,15 @@ def toggle_effect(ef_op, effect):
 effect_funcs = {
     'INV': apply_invert,
     'FOC': apply_circle_focus_blur,
+    'HUE': apply_hue_saturation,
 }
 
 # BGR
 color_channels = {
     'SEP': (20, 66, 112),
-    'RED': (10, 10, 255),
-    'GRN': (10, 255, 10),
+    'RED': (0, 0, 255),
+    'GRN': (0, 255, 0),
+    'BLU': (255, 0, 0),
 }
 
 vid = cv2.VideoCapture(0)
@@ -86,6 +101,8 @@ while 1:
             toggle_effect(effect_options, 'INV')
         if wk == ord('f'):
             toggle_effect(effect_options, 'FOC')
+        if wk == ord('h'):
+            toggle_effect(effect_options, 'HUE')
         
         if wk == ord('s'):
             toggle_effect(color_overlay_options, 'SEP')
@@ -93,6 +110,8 @@ while 1:
             toggle_effect(color_overlay_options, 'RED')
         if wk == ord('g'):
             toggle_effect(color_overlay_options, 'GRN')
+        if wk == ord('b'):
+            toggle_effect(color_overlay_options, 'BLU')
 
         cv2.imshow('camera', frame)
 
