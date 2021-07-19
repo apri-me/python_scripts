@@ -20,8 +20,8 @@ def apply_color_overlay(frame, blue, green, red, intensity=.4):
     return frame
 
 def alpha_blend(frame_1, frame_2, mask):
-    alpha = mask / 255.0
-    blended = cv2.convertScaleAbs(frame_1 * (1 - alpha) + frame_2 * alpha)
+    alpha = mask/255.0 
+    blended = cv2.convertScaleAbs(frame_1*(1-alpha) + frame_2*alpha)
     return blended
 
 def apply_circle_focus_blur(frame, intensity=.2):
@@ -39,7 +39,8 @@ def apply_circle_focus_blur(frame, intensity=.2):
     frame = cv2.cvtColor(blended, cv2.COLOR_BGRA2BGR)
     return frame
 
-def apply_hue_saturation(frame, alpha=3, beta=3):
+def apply_hue_saturation(frame, alpha=6, beta=6):
+    frame = verify_alpha_channel(frame)
     hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(hsv_image)
     s.fill(199)
@@ -52,6 +53,20 @@ def apply_hue_saturation(frame, alpha=3, beta=3):
     cv2.addWeighted(out, 0.25, frame, 1.0, .23, frame)
     return frame
 
+def apply_treshold(frame, trs_value=80):
+    frame = verify_alpha_channel(frame)
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    _, mask = cv2.threshold(gray, trs_value, 255, cv2.THRESH_BINARY)
+    return mask
+
+# def apply_portrait_mode(frame):
+#     mask = apply_treshold(frame)
+#     mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGRA)
+#     blured = cv2.GaussianBlur(frame, (21,21), 11)
+#     blended = alpha_blend(frame, blured, mask)
+#     frame = cv2.cvtColor(blended, cv2.COLOR_BGRA2BGR)
+#     return frame
+
 def toggle_effect(ef_op, effect):
     if effect in ef_op:
         ef_op.remove(effect)
@@ -62,6 +77,8 @@ effect_funcs = {
     'INV': apply_invert,
     'FOC': apply_circle_focus_blur,
     'HUE': apply_hue_saturation,
+    'TRS': apply_treshold,
+    # 'POR': portrait_mode,
 }
 
 # BGR
@@ -103,6 +120,10 @@ while 1:
             toggle_effect(effect_options, 'FOC')
         if wk == ord('h'):
             toggle_effect(effect_options, 'HUE')
+        if wk == ord('t'):
+            toggle_effect(effect_options, 'TRS')
+        if wk == ord('p'):
+            toggle_effect(effect_options, 'POR')
         
         if wk == ord('s'):
             toggle_effect(color_overlay_options, 'SEP')
