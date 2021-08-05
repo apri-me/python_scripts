@@ -106,7 +106,7 @@ while 1:
         frame = frame[:400, :600]
         ###
         ### NOTE: Effects
-        cv2.normalize(frame, frame, 0, 182, cv2.NORM_MINMAX)
+        cv2.normalize(frame, frame, -50, 280, cv2.NORM_MINMAX)
         for ef in effect_options: 
             frame = effect_funcs[ef](frame)
         for co in color_overlay_options: 
@@ -124,8 +124,8 @@ while 1:
             toggle_effect(effect_options, 'HUE')
         if wk == ord('t'):
             toggle_effect(effect_options, 'TRS')
-        if wk == ord('p'):
-            toggle_effect(effect_options, 'POR')
+        # if wk == ord('p'):
+        #     toggle_effect(effect_options, 'POR')
         
         if wk == ord('s'):
             toggle_effect(color_overlay_options, 'SEP')
