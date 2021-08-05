@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import sys
 
 def verify_alpha_channel(frame):
     try:
@@ -99,8 +100,9 @@ while 1:
     ret, frame = vid.read()
     if ret:
         ### NOTE: Size, Crop and Rotation
-        frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
-        frame = cv2.resize(frame,(400,700),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
+        frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+        frame = cv2.flip(frame, 1)
+        frame = cv2.resize(frame,(400,650),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
         frame = frame[:400, :600]
         ###
         ### NOTE: Effects
