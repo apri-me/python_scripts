@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import sys
 
+
 def verify_alpha_channel(frame):
     try:
         frame.shape[3]
@@ -9,8 +10,10 @@ def verify_alpha_channel(frame):
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2BGRA)
     return frame
 
+
 def apply_invert(frame):
     return cv2.bitwise_not(frame)
+
 
 def apply_color_overlay(frame, blue, green, red, intensity=.4):
     frame = verify_alpha_channel(frame)
@@ -20,10 +23,12 @@ def apply_color_overlay(frame, blue, green, red, intensity=.4):
     cv2.addWeighted(overlay, intensity, frame, 1, 0, frame)
     return frame
 
+
 def alpha_blend(frame_1, frame_2, mask):
     alpha = mask/255.0 
     blended = cv2.convertScaleAbs(frame_1*(1-alpha) + frame_2*alpha)
     return blended
+
 
 def apply_circle_focus_blur(frame, intensity=.2):
     frame = verify_alpha_channel(frame)
@@ -40,6 +45,7 @@ def apply_circle_focus_blur(frame, intensity=.2):
     frame = cv2.cvtColor(blended, cv2.COLOR_BGRA2BGR)
     return frame
 
+
 def apply_hue_saturation(frame, alpha=6, beta=6):
     frame = verify_alpha_channel(frame)
     hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -54,11 +60,20 @@ def apply_hue_saturation(frame, alpha=6, beta=6):
     cv2.addWeighted(out, 0.25, frame, 1.0, .23, frame)
     return frame
 
-def apply_treshold(frame, trs_value=80):
+
+def apply_treshold(frame, trs_value=100):
     frame = verify_alpha_channel(frame)
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    _, mask = cv2.threshold(gray, trs_value, 255, cv2.THRESH_BINARY)
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    _, mask = cv2.threshold(frame, trs_value, 150, cv2.THRESH_BINARY)
     return mask
+
+
+def apply_y_treshold(frame, trs_value=100):
+    frame = verify_alpha_channel(frame)
+    # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    _, mask = cv2.threshold(frame, trs_value, 200, cv2.THRESH_BINARY)
+    return mask
+
 
 # def apply_portrait_mode(frame):
 #     mask = apply_treshold(frame)
@@ -68,17 +83,20 @@ def apply_treshold(frame, trs_value=80):
 #     frame = cv2.cvtColor(blended, cv2.COLOR_BGRA2BGR)
 #     return frame
 
+
 def toggle_effect(ef_op, effect):
     if effect in ef_op:
         ef_op.remove(effect)
     else:
         ef_op.append(effect)
 
+
 effect_funcs = {
     'INV': apply_invert,
     'FOC': apply_circle_focus_blur,
     'HUE': apply_hue_saturation,
     'TRS': apply_treshold,
+    'YTR': apply_y_treshold,
     # 'POR': portrait_mode,
 }
 
@@ -89,6 +107,12 @@ color_channels = {
     'GRN': (0, 255, 0),
     'BLU': (255, 0, 0),
 }
+
+size_options = {
+    '1': (400,650, 400, 600),
+    '2': (600, 800, 600, 600),
+}
+size_option = size_options[sys.argv[1]] if len(sys.argv) > 1 else size_options['1']
 
 vid = cv2.VideoCapture(0)
 
@@ -102,8 +126,8 @@ while 1:
         ### NOTE: Size, Crop and Rotation
         frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
         frame = cv2.flip(frame, 1)
-        frame = cv2.resize(frame,(400,650),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
-        frame = frame[:400, :600]
+        frame = cv2.resize(frame,(size_option[:2]),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
+        frame = frame[:size_option[2], :size_option[3]]
         ###
         ### NOTE: Effects
         cv2.normalize(frame, frame, -50, 280, cv2.NORM_MINMAX)
@@ -124,6 +148,8 @@ while 1:
             toggle_effect(effect_options, 'HUE')
         if wk == ord('t'):
             toggle_effect(effect_options, 'TRS')
+        if wk == ord('y'):
+            toggle_effect(effect_options, 'YTR')
         # if wk == ord('p'):
         #     toggle_effect(effect_options, 'POR')
         
@@ -135,6 +161,11 @@ while 1:
             toggle_effect(color_overlay_options, 'GRN')
         if wk == ord('b'):
             toggle_effect(color_overlay_options, 'BLU')
+        
+        if wk == ord('1'):
+            size_option = size_options['1']
+        if wk == ord('2'):
+            size_option = size_options['2']
 
         cv2.imshow('camera', frame)
 
